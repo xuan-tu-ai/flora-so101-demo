@@ -1,0 +1,41 @@
+{
+ "duration_s": 16.667,
+ "segments": [
+  {
+   "id": 0,
+   "label": "grasp",
+   "start_s": 0.833,
+   "end_s": 3.533,
+   "caption": "Pick up the open brown bottle with the right hand."
+  },
+  {
+   "id": 1,
+   "label": "move to glass",
+   "start_s": 3.533,
+   "end_s": 4.567,
+   "caption": "Pick up the brown bottle with the right hand."
+  },
+  {
+   "id": 2,
+   "label": "pour",
+   "start_s": 4.567,
+   "end_s": 9.8,
+   "caption": "Pour from the brown bottle into the clear measuring cup with the right hand."
+  },
+  {
+   "id": 3,
+   "label": "place",
+   "start_s": 9.8,
+   "end_s": 12.7,
+   "caption": "Put the brown bottle upright on the table beside the measuring cup with the right hand."
+  },
+  {
+   "id": 4,
+   "label": "release + retract",
+   "start_s": 12.7,
+   "end_s": 14.5,
+   "caption": "Put the brown bottle upright on the table with the right hand."
+  }
+ ],
+ "episode_caption": "Pour from the bottle into the measuring cup, then put the bottle back on the table."
+}

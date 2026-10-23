@@ -1,0 +1,79 @@
+<style>
+:root {
+  --surface: #ffffff; --sunken: #eef2f1; --ink: #14201e; --muted: #576865; --line: #d3dcda; --accent: #0e7470;
+  --ph0: #2f66d0; --ph1: #7d55c9; --ph2: #b87b0c; --ph3: #23865c; --ph4: #c44a52;
+  --f-body: "Source Sans Pro", "Segoe UI", system-ui, sans-serif;
+  --f-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --surface: #161f1e; --sunken: #1d2826; --ink: #e2ebe9; --muted: #92a39f; --line: #2a3735; --accent: #3db3ac;
+          --ph0: #6b9af0; --ph1: #a988e8; --ph2: #e0a63a; --ph3: #4fc08b; --ph4: #ec7a80; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: transparent; color: var(--ink); font-family: var(--f-body); }
+.player { display: grid; gap: 14px; }
+.cams { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cam { position: relative; min-width: 0; }
+.cam video { width: 100%; aspect-ratio: 16 / 9; display: block; border-radius: 8px; background: #000; }
+.cam span { position: absolute; left: 8px; top: 8px; font: 11px var(--f-mono); color: #fff; background: rgba(0,0,0,.55); padding: 2px 7px; border-radius: 4px; }
+.live { display: grid; gap: 6px; min-height: 92px; padding: 14px 16px; background: var(--sunken); border-radius: 10px; }
+.live-top { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.pill { font: 12px var(--f-mono); padding: 2px 9px; border-radius: 999px; color: #fff; }
+.range { font: 13px var(--f-mono); color: var(--muted); }
+.caption { font-size: clamp(18px, 2.6vw, 24px); font-weight: 600; line-height: 1.3; }
+.caption.idle { color: var(--muted); font-weight: 400; }
+.controls { display: flex; gap: 12px; align-items: center; }
+button { font: 600 15px var(--f-body); border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 8px 18px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 640px) { .cams { grid-template-columns: 1fr; } }
+</style>
+
+<div class="player">
+  <div class="cams">
+    <div class="cam"><video id="vGlobal" src="data:video/mp4;base64,__GLOBAL__" muted playsinline preload="auto"></video><span>global</span></div>
+    <div class="cam"><video id="vWrist" src="data:video/mp4;base64,__WRIST__" muted playsinline preload="auto"></video><span>wrist</span></div>
+  </div>
+  <div class="live" aria-live="polite">
+    <div class="live-top"><span class="pill" id="pill" hidden></span><span class="range" id="range"></span></div>
+    <div class="caption idle" id="caption"></div>
+  </div>
+  <div class="controls"><button id="play">▶ Phát</button><span class="range" id="clock"></span></div>
+</div>
+
+<script>
+const D = __CAPTIONS__;
+const $ = (id) => document.getElementById(id);
+const vg = $("vGlobal"), vw = $("vWrist");
+const fmt = (x) => x.toFixed(2);
+
+function update() {
+  const t = vg.currentTime || 0;
+  const s = D.segments.find(s => t >= s.start_s && t < s.end_s);
+  $("clock").textContent = `${fmt(t)} s / ${fmt(D.duration_s)} s`;
+  if (s) {
+    $("pill").hidden = false; $("pill").textContent = s.label; $("pill").style.background = `var(--ph${s.id})`;
+    $("range").textContent = `[${fmt(s.start_s)}, ${fmt(s.end_s)}) s`;
+    $("caption").textContent = s.caption; $("caption").classList.remove("idle");
+  } else {
+    $("pill").hidden = true; $("range").textContent = "";
+    $("caption").textContent = `Cả episode: ${D.episode_caption}`; $("caption").classList.add("idle");
+  }
+}
+function tick() {
+  if (Math.abs(vw.currentTime - vg.currentTime) > 0.08) vw.currentTime = vg.currentTime;
+  update();
+  if (!vg.paused) requestAnimationFrame(tick);
+}
+$("play").addEventListener("click", () => {
+  if (vg.paused) {
+    if (vg.ended) { vg.currentTime = 0; vw.currentTime = 0; }
+    Promise.all([vg.play(), vw.play()]).catch(() => {});
+    $("play").textContent = "❚❚ Dừng"; requestAnimationFrame(tick);
+  } else {
+    vg.pause(); vw.pause(); $("play").textContent = "▶ Phát";
+  }
+});
+vg.addEventListener("ended", () => { vw.pause(); $("play").textContent = "▶ Phát"; update(); });
+update();
+</script>
